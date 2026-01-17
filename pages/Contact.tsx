@@ -101,7 +101,7 @@ const Contact: React.FC = () => {
         <div className="mt-20 bg-slate-50 rounded-3xl p-10 text-center border border-slate-200">
            <h3 className="text-2xl font-bold text-slate-900 mb-6">{t('contact.formTitle')}</h3>
            <a 
-             href="mailto:doctor@medisaas-portfolio.com"
+             href="mailto:pt.mohie@gmail.com"
              className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors shadow-lg"
            >
              <span>Send Email</span>
