@@ -23,7 +23,7 @@ const DEFAULT_PUBLIC_URL = 'https://media.lbosla.com';
 const JWKS_URL =
   'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
 const MAX_BYTES = 10 * 1024 * 1024;
-const ALLOWED_TYPES = /^(image\/(jpeg|png|webp|gif|avif|svg\+xml)|application\/pdf)$/;
+const ALLOWED_TYPES = /^(image\/(jpeg|png|webp|gif|avif)|application\/pdf)$/;
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
@@ -122,7 +122,7 @@ function cleanName(name: string | null, contentType: string): string {
   const extFromName = dot > 0 ? raw.slice(dot + 1).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
   const extFromType: Record<string, string> = {
     'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif',
-    'image/avif': 'avif', 'image/svg+xml': 'svg', 'application/pdf': 'pdf',
+    'image/avif': 'avif', 'application/pdf': 'pdf',
   };
   const ext = extFromType[contentType] || extFromName || 'bin';
   return `${base}.${ext}`;
