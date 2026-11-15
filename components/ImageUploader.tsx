@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { storage } from '../firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadMedia } from '../lib/media';
 import { Loader2, Upload, Image as ImageIcon, X } from 'lucide-react';
 
 interface ImageUploaderProps {
@@ -88,18 +87,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       
       // Create a filename with .jpg extension since we converted it
       const originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-      const fileName = `${Date.now()}_${originalName}.jpg`;
+      const fileName = `${originalName}.jpg`;
 
-      const storageRef = ref(storage, `${folder}/${fileName}`);
-      
-      // Upload the compressed blob
-      const snapshot = await uploadBytes(storageRef, compressedBlob);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
-      onChange(downloadURL);
+      // Upload the compressed blob to Cloudflare R2
+      const { url } = await uploadMedia(compressedBlob, folder, fileName);
+
+      onChange(url);
     } catch (error) {
       console.error("Upload error:", error);
-      alert("Failed to upload image");
+      alert(`Failed to upload image: ${(error as Error).message}`);
     } finally {
       setUploading(false);
     }

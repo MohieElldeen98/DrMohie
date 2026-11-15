@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { db, storage } from '../../firebase';
+import { db } from '../../firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { uploadMedia, deleteMedia, mediaKeyFromUrl } from '../../lib/media';
 import { MediaItem } from '../../types/cms';
 import { Loader2, Upload, Trash2, Copy, Image as ImageIcon, File as FileIcon } from 'lucide-react';
 
@@ -79,25 +79,22 @@ const MediaManager: React.FC = () => {
          fileName = fileName.replace(/\.[^/.]+$/, "") + ".jpg";
       }
       
-      const storagePath = `media_library/${Date.now()}_${fileName}`;
-      const storageRef = ref(storage, storagePath);
-      
-      const snapshot = await uploadBytes(storageRef, processedFile);
-      const downloadURL = await getDownloadURL(snapshot.ref);
+      // Upload to Cloudflare R2
+      const uploaded = await uploadMedia(processedFile, 'media_library', fileName);
 
       // Save Metadata to Firestore
       await addDoc(collection(db, "cms_media"), {
         fileName: fileName,
-        fileURL: downloadURL,
-        fileType: file.type.startsWith('image/') ? 'image/jpeg' : file.type,
-        fileSize: processedFile.size,
-        storagePath: snapshot.metadata.fullPath, 
+        fileURL: uploaded.url,
+        fileType: uploaded.contentType,
+        fileSize: uploaded.size,
+        storagePath: uploaded.key,
         createdAt: serverTimestamp()
       });
 
     } catch (error) {
       console.error("Upload failed", error);
-      alert("Failed to upload file.");
+      alert(`Failed to upload file: ${(error as Error).message}`);
     } finally {
       setUploading(false);
     }
@@ -109,8 +106,8 @@ const MediaManager: React.FC = () => {
     try {
       await deleteDoc(doc(db, "cms_media", item.id));
       try {
-        const fileRef = ref(storage, item.fileURL); 
-        await deleteObject(fileRef);
+        const key = mediaKeyFromUrl(item.fileURL);
+        if (key) await deleteMedia(key);
       } catch (storageErr) {
         console.warn("Could not delete from storage", storageErr);
       }
