@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Lock, LogOut, Trash2, Calendar, Phone, MapPin, FileText, Loader2, AlertCircle, Plus, Edit, Megaphone, LayoutGrid, LayoutList, Home as HomeIcon, Save, CheckCircle, Award, RefreshCw, ArrowUp, ArrowDown } from 'lucide-react';
+import { Lock, LogOut, Trash2, Calendar, Phone, MapPin, FileText, Loader2, AlertCircle, Plus, Edit, Megaphone, LayoutGrid, LayoutList, Home as HomeIcon, Save, CheckCircle, Award, RefreshCw, ArrowUp, ArrowDown, KeyRound } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { 
@@ -13,6 +13,7 @@ import ImageUploader from '../components/ImageUploader';
 import { HomeConfig, CertificateItem } from '../types/cms';
 import MediaManager from './admin/MediaManager';
 import GlobalSettingsManager from './admin/GlobalSettingsManager';
+import ChangePasswordModal from '../components/ChangePasswordModal';
 
 // --- Types ---
 interface BookingData {
@@ -63,6 +64,7 @@ const Admin: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'home' | 'bookings' | 'blog' | 'projects' | 'offers' | 'media'>('home');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   // Check auth state
   useEffect(() => {
@@ -118,10 +120,17 @@ const Admin: React.FC = () => {
           <div className="bg-slate-900 text-white p-2 rounded-lg font-bold">CMS</div>
           <h1 className="text-xl font-bold text-slate-800 hidden sm:block">لوحة التحكم</h1>
         </div>
-        <button onClick={handleLogout} className="px-4 py-2 bg-red-50 text-red-600 rounded-lg flex items-center gap-2 text-sm font-bold">
-          <LogOut size={16} /> خروج
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowPasswordModal(true)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg flex items-center gap-2 text-sm font-bold">
+            <KeyRound size={16} /> <span className="hidden sm:inline">كلمة المرور</span>
+          </button>
+          <button onClick={handleLogout} className="px-4 py-2 bg-red-50 text-red-600 rounded-lg flex items-center gap-2 text-sm font-bold">
+            <LogOut size={16} /> خروج
+          </button>
+        </div>
       </div>
+
+      {showPasswordModal && <ChangePasswordModal user={user} onClose={() => setShowPasswordModal(false)} />}
 
       <div className="container mx-auto px-4 max-w-7xl">
         {/* Scrollable Tabs */}
