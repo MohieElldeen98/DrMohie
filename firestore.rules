@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The only admin account (admin@drmohie.com). Add more UIDs here if needed.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.uid in ['pwUyGZPTfngygPz8Yd7YTZXj2DQ2'];
+    }
+
+    function shortString(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    // Site content: everyone can read, only the admin can change it.
+    match /cms/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /blogs/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /projects/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /offers/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Media library list: admin only.
+    match /cms_media/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // Bookings: visitors can send a new booking (with the form's fields only),
+    // but only the admin can read, change or delete bookings.
+    match /bookings/{bookingId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if isAdmin() || (
+        request.resource.data.keys().hasOnly(
+          ['fullName', 'phone', 'age', 'gender', 'address', 'diagnosis', 'createdAt', 'status'])
+        && request.resource.data.keys().hasAll(['fullName', 'phone', 'createdAt', 'status'])
+        && shortString(request.resource.data.fullName, 200)
+        && request.resource.data.fullName.size() > 0
+        && shortString(request.resource.data.phone, 40)
+        && request.resource.data.phone.size() > 0
+        && (!('age' in request.resource.data) || shortString(request.resource.data.age, 20))
+        && (!('gender' in request.resource.data) || shortString(request.resource.data.gender, 40))
+        && (!('address' in request.resource.data) || shortString(request.resource.data.address, 500))
+        && (!('diagnosis' in request.resource.data) || shortString(request.resource.data.diagnosis, 3000))
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.status == 'new'
+      );
+    }
+
+    // Anything else is closed.
+  }
+}
